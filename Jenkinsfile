@@ -1,5 +1,5 @@
 pipeline {
-  agent any
+  agent { label 'CentOS && Linux' }
 
   options {
     buildDiscarder(logRotator(numToKeepStr: '2', artifactNumToKeepStr: '1'))
