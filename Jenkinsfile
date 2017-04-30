@@ -29,7 +29,8 @@ pipeline {
         label 'apache'
       }
       steps {
-        sh "cp dist/rectangle_${env.BUILD_NUMBER}.jar /var/www/html/rectangles/all/"
+        sh "mkdir /var/www/html/rectangles/all/${env.BRANCH_NAME}"
+        sh "cp dist/rectangle_${env.BUILD_NUMBER}.jar /var/www/html/rectangles/all/${env.BRANCH_NAME}/"
       }
     }
     stage("Running on CentOS") {
@@ -48,6 +49,37 @@ pipeline {
       steps {
         sh "wget http://pavelbondarenko2.mylabserver.com/rectangles/all/rectangle_${env.BUILD_NUMBER}.jar"
         sh "java -jar rectangle_${env.BUILD_NUMBER}.jar 3 4"
+      }
+    }
+    stage('Promote to Green') {
+      agent {
+        label 'apache'
+      }
+      when {
+        branch 'masteralt'
+      }
+      steps {
+        sh "cp /var/www/html/rectangles/all/rectangle_${env.BUILD_NUMBER}.jar /var/www/html/rectangles/green/rectangle_${env.BUILD_NUMBER}.jar"
+      }
+    }
+    stage('Promote Development Branch to Master') {
+      agent {
+        label 'apache'
+      }
+      when {
+        branch 'development'
+      }
+      steps {
+        echo "Stashing Any Local Changes"
+        sh 'git stash'
+        echo "Checking Out Development Branch"
+        sh 'git checkout development'
+        echo 'Checking Out Master Branch'
+        sh 'git checkout masteralt'
+        echo 'Merging Development into Master Branch'
+        sh 'git merge development'
+        echo 'Pushing to Origin Master'
+        sh 'git push origin masteralt'
       }
     }
   }
