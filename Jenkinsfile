@@ -1,5 +1,5 @@
 pipeline {
-  agent any
+  agent { label 'CentOS && Linux' }
 
   stages {
     stage('Unit Tests') {
